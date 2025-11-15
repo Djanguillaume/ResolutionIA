@@ -220,8 +220,21 @@ if "chat_history" not in st.session_state:
 
 # étape courante (appropriation, analyse, realisation, validation)
 if "current_step" not in st.session_state:
-    st.session_state.current_step = "appropriation"
+    st.session_state.current_step = None
 
+# Si l’étape n’est pas définie (ex : reset involontaire de Streamlit)
+if st.session_state.current_step is None:
+    st.session_state.chat_history.append({
+        "role": "assistant",
+        "content": (
+            "📌 Il semble que nous ayons perdu le suivi de l’étape actuelle.\n"
+            "Peux-tu me dire à quelle étape nous étions ?\n"
+            "1) appropriation\n"
+            "2) analyse\n"
+            "3) réalisation\n"
+            "4) validation"
+        )
+    })
 # compteur de bonnes réponses consécutives (pour proposer de passer)
 if "correct_streak" not in st.session_state:
     st.session_state.correct_streak = 0
