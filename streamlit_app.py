@@ -117,7 +117,7 @@ L’élève PEUT écrire “passer” s'il souhaite arriver vite à une étape.
 ✅ Une seule question (jamais deux)  
 ✅ Un seul indice tiré des aides de l'étape courante  
 OU  
-✅ Une seule idée de résolution (jamais les deux à la fois)
+✅ Une seule idée de résolution tiré des aides de l'étape courante (jamais les deux à la fois)
 
 ✅ Une explication courte, claire, dialoguée  
 ✅ Jamais de résultat numérique  
