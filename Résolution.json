@@ -16,7 +16,7 @@
     },
 
     "document2": {
-      "description": "Courbes pH=f(V) et d(pH)/dV=f(V) pour le titrage de 10,0 mL de cola par une solution de soude à 0,010 mol·L⁻¹.",
+      "description": "Courbes pH=f(V) et d(pH)/dV=f(V) pour le titrage de 10,0 mL de cola (dégazifié par chauffage) par une solution de soude à 0,010 mol·L⁻¹.",
       "volumes_equivalences": {
         "Veq1_mL": 5.8,
         "Veq2_mL": 13.4
@@ -35,8 +35,11 @@
         },
         "acides_carboxyliques": {
           "description": "acides naturels minoritaires, pKa ≃ 6"
+        },
+        "produit ionique de l'eau":{
+          "pKe":[14]
         }
-      }
+     }
     },
 
     "document4": {
