@@ -1,0 +1,114 @@
+{
+  "titre": "L'acidité d'une boisson au Cola",
+  "problematique": "À l'aide des documents proposés, estimer le nombre de canettes de cola de 33 cL qu'un adolescent peut boire sans dépasser la DJA en acide phosphorique.",
+
+  "documents": {
+    "document1": {
+      "description": "Solubilité du CO2(g) dans l'eau en fonction de la température.",
+      "unite": {
+        "s": "g·L⁻¹",
+        "T": "°C"
+      },
+      "tableau_solubilite_CO2": {
+        "s_g_L": [3.5, 2.3, 1.6, 1.2, 1.0, 0.75, 0.5],
+        "T_degC": [0, 10, 20, 30, 40, 50, 60]
+      }
+    },
+
+    "document2": {
+      "description": "Courbes pH=f(V) et d(pH)/dV=f(V) pour le titrage de 10,0 mL de cola par une solution de soude à 0,010 mol·L⁻¹.",
+      "volumes_equivalences": {
+        "Veq1_mL": 5.8,
+        "Veq2_mL": 13.4
+      }
+    },
+
+    "document3": {
+      "description": "Acides présents dans la boisson gazeuse.",
+      "acides": {
+        "acide_phosphorique": {
+          "pKa": [2.2, 7.2, 12.3],
+          "M_g_mol": 98.00
+        },
+        "acide_carbonique": {
+          "pKa": [6.4, 10.3]
+        },
+        "acides_carboxyliques": {
+          "description": "acides naturels minoritaires, pKa ≃ 6"
+        }
+      }
+    },
+
+    "document4": {
+      "description": "Informations sur les réactions chimiques.",
+      "principes": [
+        "Une réaction est quantitative si K° > 10⁴.",
+        "Deux réactions peuvent être simultanées si leur rapport de K° est entre 10⁴ et 0.0001.",
+        "Si deux réactions successives ne sont pas simultanées, celle de plus grande constante d’équilibre se produit en premier."
+      ]
+    }
+  },
+
+  "aides": {
+    "appropriation": [
+      "Quel type de dosage doit être mis en jeu ?",
+      "Quelles sont les données utiles ?",
+      "Quel est le gaz contenu dans la boisson au cola ?",
+      "De quel facteur dépend la solubilité du CO₂ dans l’eau ?",
+      "Comment lire le(s) volume(s) équivalent(s) sur la courbe fournie ?"
+    ],
+    "analyse": [
+      "Pourquoi et comment éliminer le gaz présent dans le cola ?",
+      "Quelles sont les équations des réactions ayant lieu au cours du dosage ?",
+      "Dans quel ordre ont lieu ces réactions ?",
+      "Les réactions sont-elles successives ou simultanées ?",
+      "Pourquoi n'observe-t-on que deux équivalences ?",
+      "Quelle masse moyenne d’un adolescent choisir ?",
+      "Quelle équivalence est utile pour résoudre le problème ?"
+    ],
+    "realiser": [
+      "Comment écrire la relation à l’équivalence pour déterminer la concentration CA ?",
+      "Comment calculer la quantité de matière d’acide phosphorique dans une canette ?",
+      "Comment déterminer le nombre de canettes qu’un adolescent peut boire ?",
+      "Quelle équivalence permet de vérifier l’efficacité du chauffage ?"
+    ],
+    "valider": [
+      "Quel regard critique poser sur la démarche ?",
+      "D’autres composants peuvent-ils perturber le titrage ?"
+    ]
+  },
+
+  "resolution_idees": {
+    "appropriation": [
+      "Identifier qu’il s’agit d’un titrage acido-basique.",
+      "Identifier les volumes équivalents Veq1 et Veq2.",
+      "Reconnaître que le gaz présent est le CO₂.",
+      "Comprendre que la solubilité du CO₂ diminue lorsque la température augmente.",
+      "Repérer que les équivalences correspondent aux maxima de la dérivée."
+    ],
+    "analyse": [
+      "Le CO₂ doit être éliminé par chauffage car il est acide et fausserait le titrage.",
+      "Écrire les trois réactions successives du triacide H₃PO₄.",
+      "Les réactions se produisent dans l’ordre 1 → 2 → 3.",
+      "Le rapport des constantes montre qu’elles sont successives.",
+      "La troisième réaction n’est pas quantitative → donc pas de saut visible.",
+      "On peut choisir une masse moyenne de 60 kg.",
+      "Seule la première équivalence permet de déterminer la concentration en H₃PO₄."
+    ],
+    "realiser": [
+      "Écrire : n(H₃PO₄) = n(OH⁻)eq1 = C_B × V_eq1.",
+      "Multiplier CA par 0,33 L pour la canette.",
+      "Relier la DJA et la masse maximale d’acide pour obtenir le nombre de canettes.",
+      "Comparer 2×Veq1 et Veq2 pour vérifier l’élimination du CO₂."
+    ]
+  },
+
+  "reponses_numeriques": {
+    "C_A_mol_L": 0.0058,
+    "n_canette_mol": 0.0019,
+    "m_canette_g": 0.19,
+    "m_max_g": 4.2,
+    "nombre_canettes": 22,
+    "CO2_residuel_mol_L": 0.0018
+  }
+}
