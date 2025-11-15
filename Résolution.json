@@ -91,7 +91,24 @@
     ],
     "analyse": [
       "Le CO₂ doit être éliminé par chauffage car il est acide et fausserait le titrage.",
-      "Écrire les trois réactions successives du triacide H₃PO₄.",
+      "Les réactions du triacide H₃PO₄ sont :",
+    {
+      "equations": [
+        {
+          "id": "r1",
+          "equation_display": "H₃PO₄ + OH⁻ → H₂PO₄⁻ + H₂O"
+        },
+        {
+          "id": "r2",
+          "equation_display": "H₂PO₄⁻ + OH⁻ → HPO₄²⁻ + H₂O"
+        },
+        {
+          "id": "r3",
+          "equation_display": "HPO₄²⁻ + OH⁻ → PO₄³⁻ + H₂O"
+        }
+      ]
+    },
+             "Utiliser la  relation K = 10^(pKe – pKa) pour calculer les constantes.",
       "Les réactions se produisent dans l’ordre 1 → 2 → 3.",
       "Le rapport des constantes montre qu’elles sont successives.",
       "La troisième réaction n’est pas quantitative → donc pas de saut visible.",
