@@ -253,32 +253,42 @@ if question:
 
     # --- 1) Si on attend une confirmation pour changer d'étape ---
     if st.session_state.waiting_for_confirmation:
-        # accepte plusieurs formulations raisonnables (insensible à la casse)
-        if q_clean in CONFIRM_KEYS:
-            # avance d'une étape
-            next_map = {
-                "appropriation": "analyse",
-                "analyse": "realisation",
-                "realisation": "validation",
-                "validation": "validation"
-            }
-            previous = st.session_state.current_step
-            st.session_state.current_step = next_map.get(st.session_state.current_step, "appropriation")
-            st.session_state.waiting_for_confirmation = False
-            st.session_state.correct_streak = 0
 
-            st.session_state.chat_history.append({"role": "user", "content": question})
-            st.session_state.chat_history.append({
-                "role": "assistant",
-                "content": f"✅ Très bien — on passe à l'étape **{st.session_state.current_step}**. On y va doucement : que veux-tu travailler en {st.session_state.current_step} ?"
+    if q_clean in CONFIRM_KEYS:
+
+        next_map = {
+            "appropriation": "analyse",
+            "analyse": "realisation",
+            "realisation": "validation",
+            "validation": "validation"
+        }
+
+        # sécurité : on ne revient JAMAIS à appropriation par défaut
+        if st.session_state.current_step in next_map:
+            st.session_state.current_step = next_map[st.session_state.current_step]
+        else:
+            st.session_state.current_step = None   # provoque la demande "où en étions-nous ?"
+
+        st.session_state.waiting_for_confirmation = False
+        st.session_state.correct_streak = 0
+
+        if st.session_state.current_step is None:
+            st.session_state.chat_history.append({"role": "assistant", "content":
+                "📌 J'ai perdu le suivi de notre progression.\n"
+                "Peux-tu me rappeler à quelle étape nous étions ?\n"
+                "(appropriation / analyse / réalisation / validation)"
             })
         else:
-            # si c'est une réponse normale (pas confirmation), on reste dans l'étape et on continue
-            st.session_state.chat_history.append({"role": "user", "content": question})
-            st.session_state.chat_history.append({
-                "role": "assistant",
-                "content": "👍 D'accord — on reste sur cette étape pour l'instant. Dis-moi précisément ce que tu as compris ou ce qui bloque."
+            st.session_state.chat_history.append({"role": "assistant", "content":
+                f"✅ Très bien — on passe à l'étape **{st.session_state.current_step}**.\n"
+                f"Que veux-tu travailler maintenant en {st.session_state.current_step} ?"
             })
+
+    else:
+        # si ce n’est pas une confirmation → juste continuer dans l’étape actuelle
+        st.session_state.chat_history.append({"role": "assistant", "content":
+            "👍 D'accord — on reste sur cette étape. Dis-moi ce que tu as compris ou ce qui bloque."
+        })
 
     # --- 2) Salutations simples ---
     elif q_clean in ["bonjour", "salut", "coucou", "hello"]:
