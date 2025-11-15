@@ -63,6 +63,7 @@
     "analyse": [
       "Pourquoi et comment éliminer le gaz présent dans le cola ?",
       "Quelles sont les équations des réactions ayant lieu au cours du dosage ?",
+      "Quelles sont les constantes d'équilibre associées aux réactions?",
       "Dans quel ordre ont lieu ces réactions ?",
       "Les réactions sont-elles successives ou simultanées ?",
       "Pourquoi n'observe-t-on que deux équivalences ?",
@@ -108,7 +109,7 @@
         }
       ]
     },
-             "Utiliser la  relation K = 10^(pKe – pKa) pour calculer les constantes.",
+      "Utiliser la relation K = 10^(pKe – pKa) pour calculer les constantes.",
       "Les réactions se produisent dans l’ordre 1 → 2 → 3.",
       "Le rapport des constantes montre qu’elles sont successives.",
       "La troisième réaction n’est pas quantitative → donc pas de saut visible.",
