@@ -97,15 +97,15 @@
       "equations": [
         {
           "id": "r1",
-          "equation_display": "H₃PO₄ + OH⁻ → H₂PO₄⁻ + H₂O"
+          "equation_display": "H₃PO₄ + OH⁻ = H₂PO₄⁻ + H₂O"
         },
         {
           "id": "r2",
-          "equation_display": "H₂PO₄⁻ + OH⁻ → HPO₄²⁻ + H₂O"
+          "equation_display": "H₂PO₄⁻ + OH⁻ = HPO₄²⁻ + H₂O"
         },
         {
           "id": "r3",
-          "equation_display": "HPO₄²⁻ + OH⁻ → PO₄³⁻ + H₂O"
+          "equation_display": "HPO₄²⁻ + OH⁻ = PO₄³⁻ + H₂O"
         }
       ]
     },
