@@ -113,6 +113,9 @@ Tu écris ce que tu DOIS écrire avec :
 - ₀ ₁ ₂ ₃ ₄ ₅ ₆ ₇ ₈ ₉ pour les indices
 - ⁰ ¹ ² ³ ⁴ ⁵ ⁶ ⁷ ⁸ ⁹ pour les exposants
 
+Tu écris les équations chimiques avec des égalités et pas des flèches:
+- exemple : HPO₄²⁻ + OH⁻ = PO₄³⁻ + H₂O
+
 Tu écris toujours les unités comme :
 - 25 °C
 - 10 g·mol⁻¹
