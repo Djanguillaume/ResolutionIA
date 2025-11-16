@@ -214,114 +214,126 @@ Quand tu écris des formules chimiques ou mathématiques :
 Fin des consignes.
 """
 # ========== 5. Mémoire et initialisation des états ==========
+
+# --- Nouveau système d'étapes robuste ---
+if "step_index" not in st.session_state:
+    st.session_state.step_index = 0  # 0 = appropriation
+
+STEPS = ["appropriation", "analyse", "realisation", "validation"]
+
+def get_current_step():
+    return STEPS[st.session_state.step_index]
+
+
+# Historique
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
-# étape courante (appropriation, analyse, realisation, validation)
-if "current_step" not in st.session_state:
-    st.session_state.current_step = "appropriation"
-
-# compteur de bonnes réponses consécutives (pour proposer de passer)
+# compteur de bonnes réponses consécutives
 if "correct_streak" not in st.session_state:
     st.session_state.correct_streak = 0
 
-# drapeau : l'IA a proposé de passer et attend la confirmation de l'élève
+# l'IA attend confirmation pour passer à l'étape suivante
 if "waiting_for_confirmation" not in st.session_state:
     st.session_state.waiting_for_confirmation = False
 
-# phrases/valeurs acceptées pour confirmer le passage d'étape
-CONFIRM_KEYS = {"j'ai compris — passer", "j'ai compris - passer", "j'ai compris", "passer", "oui", "ok passer", "ok, passer"}
+# valeurs acceptées pour confirmer le passage d'étape
+CONFIRM_KEYS = {
+    "j'ai compris — passer", "j'ai compris - passer",
+    "j'ai compris", "passer", "oui", "ok passer", "ok, passer"
+}
+
 
 # ========== 6. Interaction ==========
+
 if question:
 
     q_clean = question.lower().strip()
+    current_step = get_current_step()
 
     # --- 1) Si on attend une confirmation pour changer d'étape ---
     if st.session_state.waiting_for_confirmation:
-        # accepte plusieurs formulations raisonnables (insensible à la casse)
+
         if q_clean in CONFIRM_KEYS:
-            # avance d'une étape
-            next_map = {
-                "appropriation": "analyse",
-                "analyse": "realisation",
-                "realisation": "validation",
-                "validation": "validation"
-            }
-            previous = st.session_state.current_step
-            st.session_state.current_step = next_map.get(st.session_state.current_step, "appropriation")
+
+            # --- Nouveau système : on incrémente simplement l’index ---
+            if st.session_state.step_index < len(STEPS) - 1:
+                st.session_state.step_index += 1
+
+            new_step = get_current_step()
             st.session_state.waiting_for_confirmation = False
             st.session_state.correct_streak = 0
 
             st.session_state.chat_history.append({"role": "user", "content": question})
             st.session_state.chat_history.append({
                 "role": "assistant",
-                "content": f"✅ Très bien — on passe à l'étape **{st.session_state.current_step}**. On y va doucement : que veux-tu travailler en {st.session_state.current_step} ?"
+                "content": (
+                    f"✅ Très bien — on passe à l'étape **{new_step}**. "
+                    f"Que veux-tu travailler en **{new_step}** ?"
+                )
             })
+
         else:
-            # si c'est une réponse normale (pas confirmation), on reste dans l'étape et on continue
+            # pas une confirmation -> réponse normale
             st.session_state.chat_history.append({"role": "user", "content": question})
             st.session_state.chat_history.append({
                 "role": "assistant",
-                "content": "👍 D'accord — on reste sur cette étape pour l'instant. Dis-moi précisément ce que tu as compris ou ce qui bloque."
+                "content": "👍 Pas de souci — on reste sur cette étape. Qu’est-ce qui bloque ?"
             })
 
-    # --- 2) Salutations simples ---
+
+    # --- 2) Salutations ---
     elif q_clean in ["bonjour", "salut", "coucou", "hello"]:
         st.session_state.chat_history.append({"role": "user", "content": question})
-        st.session_state.chat_history.append({"role": "assistant", "content": "👋 Salut ! On commence ? As-tu une question? "})
+        st.session_state.chat_history.append({
+            "role": "assistant",
+            "content": "👋 Salut ! On commence ? Pose-moi ta première question."
+        })
 
-    # --- 3) Cas normal : on renvoie le contexte + current_step au modèle ---
+
+    # --- 3) Cas normal : envoi au modèle ---
     else:
-        # Construire le contexte JSON adapté
+
+        # Contexte JSON transmis au modèle
         contexte = {
             "problematique": data.get("problematique", ""),
             "documents": data.get("documents", {}),
             "aides": data.get("aides", {}),
             "resolution_idees": data.get("resolution_idees", {}),
-            # on peut inclure reponses_numeriques mais l'IA doit être instruite de ne pas les révéler
             "reponses_numeriques": data.get("reponses_numeriques", {})
         }
 
-        # Messages envoyés : on inclut current_step pour que l'IA sache rester bloquée
+        # messages envoyés
         messages = [{"role": "system", "content": system_prompt}]
         messages.extend(st.session_state.chat_history)
+
         messages.append({
-    "role": "user",
-    "content": (
-        f"ÉTAPE_COURANTE = {st.session_state.current_step}\n"
-        "Tu dois respecter STRICTEMENT les règles suivantes :\n"
-        "\n"
-        "🚫 IMPORTANT : Même si la question de l’élève est floue, étrange, maladroite ou hors de propos,\n"
-        "TU NE DOIS JAMAIS revenir spontanément à une étape précédente.\n"
-        "Tu RESTES strictement dans ÉTAPE_COURANTE.\n"
-        "Si la question n’a aucun rapport avec l’exercice : tu le dis, puis tu poses UNE seule\n"
-        "micro-question correspondant à ÉTAPE_COURANTE.\n"
-        "\n"
-        "1️⃣ SI l'élève pose une question :\n"
-        "- commence toujours par répondre à SA question\n"
-        "- ensuite, seulement si nécessaire pour avancer l’étape, pose UNE question très courte\n"
-        "- sinon, ne pose aucune question\n"
-        "\n"
-        "2️⃣ SI l'élève NE pose PAS de question :\n"
-        "- propose UNE seule micro-question guidée pour avancer dans l'étape\n"
-        "\n"
-        "3️⃣ Interdictions absolues :\n"
-        "- jamais plus d'une question par message\n"
-        "- jamais plusieurs idées de résolution\n"
-        "- pas d'explication longue\n"
-        "- pas de cours\n"
-        "- pas de digressions hors étape\n"
-        "- pas de sauts d'étape\n"
-        "- n'utilise que les aides, documents ou idées correspondant à ÉTAPE_COURANTE\n"
-        "\n"
-        "4️⃣ Fin obligatoire :\n"
-        "- uniquement si nécessaire, termine ton message par UNE petite question liée à l’étape\n"
-        "\n"
-        f"Contexte JSON : {json.dumps(contexte, ensure_ascii=False)}\n\n"
-        f"Question de l'élève : {question}"
-    )
-})
+            "role": "user",
+            "content": (
+                f"ÉTAPE_COURANTE = {current_step}\n"
+                "Tu dois respecter STRICTEMENT les règles suivantes :\n"
+                "\n"
+                "🚫 IMPORTANT : Même si la question de l’élève est floue ou hors sujet,\n"
+                "TU NE DOIS JAMAIS revenir spontanément à une étape précédente.\n"
+                "Tu RESTES strictement dans ÉTAPE_COURANTE.\n"
+                "\n"
+                "1️⃣ Si l’élève pose une question :\n"
+                "- commence par répondre à SA question\n"
+                "- puis pose UNE seule micro-question si nécessaire\n"
+                "\n"
+                "2️⃣ Si l’élève ne pose pas de question :\n"
+                "- propose UNE seule micro-question guidée pour avancer\n"
+                "\n"
+                "3️⃣ Interdictions :\n"
+                "- jamais plus d’une question\n"
+                "- pas de cours, pas de longs textes\n"
+                "- pas de sauts d’étape\n"
+                "- pas de retour à une étape précédente\n"
+                "\n"
+                f"Contexte JSON : {json.dumps(contexte, ensure_ascii=False)}\n\n"
+                f"Question de l'élève : {question}"
+            )
+        })
 
         # Appel API avec retry
         max_retries = 3
@@ -346,40 +358,42 @@ if question:
         # Traitement de la réponse
         if response:
             answer = response.choices[0].message.content
-            # nettoyage LaTeX léger
+
+            # nettoyage
             answer = re.sub(r'(?<!\\)mathcal\s*([A-Za-z])', r'\\mathcal{\1}', answer)
             answer = answer.replace("\\ ", "\\")
 
-            # enregistrer l'échange
+            # on enregistre l'échange
             st.session_state.chat_history.append({"role": "user", "content": question})
             st.session_state.chat_history.append({"role": "assistant", "content": answer})
 
-            # heuristique simple pour repérer qu'un élève "maîtrise" (à affiner plus tard)
+            # logique d’avancement
             good_patterns = ["je pense que", "cela signifie", "je comprends", "c'est parce que", "j'ai compris"]
             if any(p in question.lower() for p in good_patterns):
                 st.session_state.correct_streak += 1
             else:
                 st.session_state.correct_streak = 0
 
-            # si l'élève a donné plusieurs bonnes réponses consécutives, proposer de passer
+            # l’IA propose de passer après maîtrise
             if st.session_state.correct_streak >= 3:
                 st.session_state.correct_streak = 0
                 st.session_state.waiting_for_confirmation = True
+
                 st.session_state.chat_history.append({
                     "role": "assistant",
                     "content": (
                         "✅ Tu sembles bien maîtriser cette étape.\n"
-                        "Si tu veux passer à l'étape suivante, écris exactement : `J'ai compris — passer` (ou simplement : `passer`).\n"
-                        "Sinon, continue : quelle partie veux-tu approfondir ?"
+                        "Pour passer à l'étape suivante, écris : `J'ai compris — passer`.\n"
+                        "Sinon, dis-moi ce que tu veux approfondir."
                     )
                 })
 
+
 # ========== Rendu visuel du chat (nouveaux messages en haut) ==========
+
 if st.session_state.chat_history:
 
-    # On inverse l’ordre : les nouveaux messages d'abord
     reversed_history = list(reversed(st.session_state.chat_history))
-
     st.markdown("<div class='chat-container'>", unsafe_allow_html=True)
 
     for msg in reversed_history:
