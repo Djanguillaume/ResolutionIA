@@ -215,32 +215,43 @@ Fin des consignes.
 """
 # ========== 5. Mémoire et initialisation des états ==========
 
-# --- Nouveau système d'étapes robuste ---
+# --- Système d'étapes bétonné ---
+STEPS = ["appropriation", "analyse", "realisation", "validation"]
+
+STEP_KEYS = {
+    "appropriation": "KEY_A9F2",
+    "analyse": "KEY_C73B",
+    "realisation": "KEY_F51D",
+    "validation": "KEY_9E44"
+}
+
 if "step_index" not in st.session_state:
     st.session_state.step_index = 0  # 0 = appropriation
-
-STEPS = ["appropriation", "analyse", "realisation", "validation"]
 
 def get_current_step():
     return STEPS[st.session_state.step_index]
 
+def get_step_key():
+    return STEP_KEYS[get_current_step()]
 
-# Historique
+
+# --- Historique ---
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
-# compteur de bonnes réponses consécutives
+# --- Compteur de réponses correctes ---
 if "correct_streak" not in st.session_state:
     st.session_state.correct_streak = 0
 
-# l'IA attend confirmation pour passer à l'étape suivante
+# --- Attente de confirmation de changement d'étape ---
 if "waiting_for_confirmation" not in st.session_state:
     st.session_state.waiting_for_confirmation = False
 
-# valeurs acceptées pour confirmer le passage d'étape
+
+# --- Phrases acceptées pour confirmer ---
 CONFIRM_KEYS = {
-    "j'ai compris — passer", "j'ai compris - passer",
-    "j'ai compris", "passer", "oui", "ok passer", "ok, passer"
+    "j'ai compris — passer", "j'ai compris - passer", "j'ai compris",
+    "passer", "oui", "ok passer", "ok, passer"
 }
 
 
@@ -249,18 +260,15 @@ CONFIRM_KEYS = {
 if question:
 
     q_clean = question.lower().strip()
-    current_step = get_current_step()
 
-    # --- 1) Si on attend une confirmation pour changer d'étape ---
+    # --- 1) Gestion de la confirmation ---
     if st.session_state.waiting_for_confirmation:
 
         if q_clean in CONFIRM_KEYS:
-
-            # --- Nouveau système : on incrémente simplement l’index ---
+            # Passer à l'étape suivante (sécurisé par index)
             if st.session_state.step_index < len(STEPS) - 1:
                 st.session_state.step_index += 1
 
-            new_step = get_current_step()
             st.session_state.waiting_for_confirmation = False
             st.session_state.correct_streak = 0
 
@@ -268,33 +276,30 @@ if question:
             st.session_state.chat_history.append({
                 "role": "assistant",
                 "content": (
-                    f"✅ Très bien — on passe à l'étape **{new_step}**. "
-                    f"Que veux-tu travailler en **{new_step}** ?"
+                    f"✅ Parfait — on passe à l'étape **{get_current_step()}**.\n"
+                    f"On continue doucement : que veux-tu travailler en {get_current_step()} ?"
                 )
             })
 
         else:
-            # pas une confirmation -> réponse normale
+            # L'élève ne confirme pas → on reste dans la même étape
             st.session_state.chat_history.append({"role": "user", "content": question})
             st.session_state.chat_history.append({
                 "role": "assistant",
-                "content": "👍 Pas de souci — on reste sur cette étape. Qu’est-ce qui bloque ?"
+                "content": "👍 Pas de souci — on reste dans cette étape. Qu'as-tu compris ou où veux-tu de l'aide ?"
             })
-
 
     # --- 2) Salutations ---
     elif q_clean in ["bonjour", "salut", "coucou", "hello"]:
         st.session_state.chat_history.append({"role": "user", "content": question})
         st.session_state.chat_history.append({
             "role": "assistant",
-            "content": "👋 Salut ! On commence ? Pose-moi ta première question."
+            "content": "👋 Salut ! On commence ? Quelle est ta question ?"
         })
 
-
-    # --- 3) Cas normal : envoi au modèle ---
+    # --- 3) Traitement normal ---
     else:
 
-        # Contexte JSON transmis au modèle
         contexte = {
             "problematique": data.get("problematique", ""),
             "documents": data.get("documents", {}),
@@ -303,41 +308,38 @@ if question:
             "reponses_numeriques": data.get("reponses_numeriques", {})
         }
 
-        # messages envoyés
         messages = [{"role": "system", "content": system_prompt}]
         messages.extend(st.session_state.chat_history)
 
         messages.append({
             "role": "user",
             "content": (
-                f"ÉTAPE_COURANTE = {current_step}\n"
-                "Tu dois respecter STRICTEMENT les règles suivantes :\n"
+                f"ÉTAPE_COURANTE = {get_current_step()}\n"
+                f"CLE_ETAPE = {get_step_key()}\n"
                 "\n"
-                "🚫 IMPORTANT : Même si la question de l’élève est floue ou hors sujet,\n"
-                "TU NE DOIS JAMAIS revenir spontanément à une étape précédente.\n"
-                "Tu RESTES strictement dans ÉTAPE_COURANTE.\n"
+                "🚫 IMPORTANT : Tu ne dois JAMAIS changer d'étape.\n"
+                "Tu dois OBLIGATOIREMENT rester verrouillé dans ÉTAPE_COURANTE et la clé CLE_ETAPE.\n"
+                "Même si la question est floue, hors-sujet ou erronée :\n"
+                "- tu restes dans cette étape,\n"
+                "- tu le dis simplement,\n"
+                "- puis tu poses UNE seule micro-question correspondant à ÉTAPE_COURANTE.\n"
                 "\n"
-                "1️⃣ Si l’élève pose une question :\n"
-                "- commence par répondre à SA question\n"
-                "- puis pose UNE seule micro-question si nécessaire\n"
-                "\n"
-                "2️⃣ Si l’élève ne pose pas de question :\n"
-                "- propose UNE seule micro-question guidée pour avancer\n"
-                "\n"
-                "3️⃣ Interdictions :\n"
-                "- jamais plus d’une question\n"
-                "- pas de cours, pas de longs textes\n"
-                "- pas de sauts d’étape\n"
-                "- pas de retour à une étape précédente\n"
+                "Rappels stricts :\n"
+                "- jamais plus d'une question\n"
+                "- jamais d'explications longues\n"
+                "- jamais de changement d'étape\n"
+                "- jamais de résultats numériques\n"
+                "- utiliser uniquement les aides correspondant à ÉTAPE_COURANTE\n"
                 "\n"
                 f"Contexte JSON : {json.dumps(contexte, ensure_ascii=False)}\n\n"
                 f"Question de l'élève : {question}"
             )
         })
 
-        # Appel API avec retry
+        # ---- Appel API ----
         max_retries = 3
         response = None
+
         for attempt in range(max_retries):
             try:
                 response = client.chat.completions.create(
@@ -348,51 +350,50 @@ if question:
             except Exception as e:
                 if "429" in str(e) and attempt < max_retries - 1:
                     wait = 5 * (attempt + 1)
-                    st.warning(f"⚠️ Serveur saturé. Nouvel essai dans {wait}s...")
+                    st.warning(f"⚠️ Serveur saturé, nouvel essai dans {wait}s…")
                     time.sleep(wait)
                 else:
                     st.error(f"❌ Erreur API OpenAI : {e}")
                     response = None
                     break
 
-        # Traitement de la réponse
         if response:
             answer = response.choices[0].message.content
-
-            # nettoyage
             answer = re.sub(r'(?<!\\)mathcal\s*([A-Za-z])', r'\\mathcal{\1}', answer)
             answer = answer.replace("\\ ", "\\")
 
-            # on enregistre l'échange
             st.session_state.chat_history.append({"role": "user", "content": question})
             st.session_state.chat_history.append({"role": "assistant", "content": answer})
 
-            # logique d’avancement
-            good_patterns = ["je pense que", "cela signifie", "je comprends", "c'est parce que", "j'ai compris"]
+            # Détection naïve d’une bonne réponse
+            good_patterns = [
+                "je pense que", "cela signifie",
+                "je comprends", "c'est parce que",
+                "j'ai compris"
+            ]
+
             if any(p in question.lower() for p in good_patterns):
                 st.session_state.correct_streak += 1
             else:
                 st.session_state.correct_streak = 0
 
-            # l’IA propose de passer après maîtrise
+            # Proposition de passage si 3 bonnes réponses
             if st.session_state.correct_streak >= 3:
                 st.session_state.correct_streak = 0
                 st.session_state.waiting_for_confirmation = True
-
                 st.session_state.chat_history.append({
                     "role": "assistant",
                     "content": (
                         "✅ Tu sembles bien maîtriser cette étape.\n"
-                        "Pour passer à l'étape suivante, écris : `J'ai compris — passer`.\n"
-                        "Sinon, dis-moi ce que tu veux approfondir."
+                        "Si tu veux passer à l'étape suivante, écris : `J'ai compris — passer`.\n"
+                        "Sinon, sur quoi veux-tu revenir ?"
                     )
                 })
 
 
-# ========== Rendu visuel du chat (nouveaux messages en haut) ==========
+# ========== Rendu visuel du chat ==========
 
 if st.session_state.chat_history:
-
     reversed_history = list(reversed(st.session_state.chat_history))
     st.markdown("<div class='chat-container'>", unsafe_allow_html=True)
 
@@ -411,4 +412,4 @@ if st.session_state.chat_history:
     st.markdown("</div>", unsafe_allow_html=True)
 
 else:
-    st.info("✏️ Entre une question pour commencer la résolution.")
+    st.info("✏️ Entre une question pour commencer.")
