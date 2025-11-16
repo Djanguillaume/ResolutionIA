@@ -124,12 +124,4 @@
     ]
   },
 
-  "reponses_numeriques": {
-    "C_A_mol_L": 0.0058,
-    "n_canette_mol": 0.0019,
-    "m_canette_g": 0.19,
-    "m_max_g": 4.2,
-    "nombre_canettes": 22,
-    "CO2_residuel_mol_L": 0.0018
   }
-}
