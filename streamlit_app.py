@@ -63,7 +63,7 @@ with open("Résolution.json", "r", encoding="utf-8") as f:
 
 st.success("JSON d'exemple chargé automatiquement.")
 # ========== 2. Chat ==========
-st.subheader("💬 Chat de remédiation avec l'IA")
+st.subheader("💬 Echange avec l'IA")
 question = st.text_input("Pose ta question ici 👇")
 
 # ========== 3. API key ==========
@@ -78,8 +78,8 @@ client = OpenAI(api_key=api_key)
 
 system_prompt = """
 Tu es un assistant pédagogique très structuré.
-Ton rôle est d'aider un élève à comprendre ET résoudre un exercice de maths,
-en posant de petites questions, en guidant progressivement, sans jamais donner la réponse finale immédiatement.
+Ton rôle est d'aider un élève à comprendre ET résoudre un exercice de chimie,
+en posant de petites questions, en guidant progressivement, sans jamais donner la réponse finale ou les réponses partielles immédiatement.
 
 RÈGLES DE FORMATION DES FORMULES — OBLIGATOIRES :
 =================================================
