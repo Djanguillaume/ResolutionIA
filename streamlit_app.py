@@ -185,6 +185,9 @@ Tu évalues :
 ====================================================
 Quand tu écris des formules chimiques ou mathématiques :
 
+✅ Toujours en texte brut avec indices Unicode.  
+✅ Jamais de LaTeX.
+
 ✅ Écris-les directement en texte brut, de manière lisible :
    - H₂O (pas \\mathrm{H_2O})
    - CO₂ (pas \\mathrm{CO_2})
